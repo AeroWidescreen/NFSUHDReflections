@@ -7,5 +7,5 @@
 - ForceEnableMirror : Rearview mirror will be visible for all camera views. Toggle in options menu.
 
 ## Credits
-[Aero_](https://github.com/AeroWidescreen) : Creator of NFSU HD Reflections  
-[ExOpts Team](https://github.com/ExOptsTeam/) : The majority of the project is based on their work. This wouldn't exist without them.  
+[Aero_](https://github.com/AeroWidescreen) : Creator of NFSU HD Reflections.  
+[ExOpts Team](https://github.com/ExOptsTeam/) : The project is based on Extra Options and it wouldn't exist without them.
