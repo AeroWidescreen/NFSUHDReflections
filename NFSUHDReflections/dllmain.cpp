@@ -57,21 +57,19 @@ void Init()
 		injector::WriteMemory<uint32_t>(0x40AAD1, ResolutionY, true);
 		// Vehicle Reflection
 		injector::WriteMemory<uint32_t>(0x702A84, ResolutionY, true);
-		// RVM Reflection X
-		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionX, true);
-		// RVM Reflection Y
-		injector::WriteMemory<uint32_t>(0x702AA0, ResolutionY, true);
+		// RVM Reflection
+		// Aspect ratio without RVM_MASK is 3:1
+		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionY, true);
+		injector::WriteMemory<uint32_t>(0x702AA0, ResolutionY / 3, true);
 
 	}
 
 	if (ForceEnableMirror)
 	{
 		// Enables mirror for all camera views
-		injector::MakeNOP(0x4C1F43, true); 
-		injector::MakeNOP(0x4C1F44, true);
+		injector::MakeNOP(0x4C1F43, 2, true); 
 		// Enables mirror option for all camera views
-		injector::MakeNOP(0x40843F, true);
-		injector::MakeNOP(0x408440, true);
+		injector::MakeNOP(0x40843F, 2, true);
 	}
 }
 	
