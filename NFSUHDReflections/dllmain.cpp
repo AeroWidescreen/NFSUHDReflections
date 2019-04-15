@@ -8,7 +8,7 @@
 
 DWORD WINAPI Thing(LPVOID);
 
-bool HDReflections, ForceEnableMirror;
+bool HDReflections, ImproveReflectionLOD, ForceEnableMirror;
 static int ResolutionX, ResolutionY;
 DWORD GameState;
 HWND windowHandle;
@@ -19,8 +19,8 @@ DWORD ImproveReflectionLODCodeCaveExit = 0x570FF2;
 void __declspec(naked) ImproveReflectionLODCodeCave()
 {
 	__asm {
-		mov ecx, 0x0 // LOD setting
-		mov edx, 0x0 // LOD setting
+		mov ecx, 0x0 // Road Reflection (Vehicle) LOD setting
+		mov edx, 0x0 // Road Reflection (Vehicle) LOD setting
 		jmp ImproveReflectionLODCodeCaveExit
 	}
 }
@@ -36,15 +36,12 @@ void Init()
 
 	// General
 	HDReflections = iniReader.ReadInteger("GENERAL", "HDReflections", 1);
+	ImproveReflectionLOD = iniReader.ReadInteger("GENERAL", "ImproveReflectionLOD", 1);
 	ForceEnableMirror = iniReader.ReadInteger("GENERAL", "ForceEnableMirror", 1);
 
 	
 	if (HDReflections)
 	{
-		// Jumps
-		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave, true);
-		// Reflection LOD
-		injector::WriteMemory<uint8_t>(0x53E30B, 0xEB, true);
 		// Road Reflection X
 		injector::WriteMemory<uint32_t>(0x40A8BB, ResolutionX, true);
 		injector::WriteMemory<uint32_t>(0x40A8F1, ResolutionX, true);
@@ -62,6 +59,16 @@ void Init()
 		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionY, true);
 		injector::WriteMemory<uint32_t>(0x702AA0, ResolutionY / 3, true);
 
+	}
+
+	if (ImproveReflectionLOD)
+	{
+		// Road Reflection LOD
+		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave, true);
+		// Vehicle Reflection LOD
+		injector::WriteMemory<uint32_t>(0x408FEC, 0x00000000, true);
+		// RVM LOD
+		injector::WriteMemory<uint32_t>(0x408F94, 0x00000000, true);
 	}
 
 	if (ForceEnableMirror)
