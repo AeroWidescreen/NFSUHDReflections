@@ -8,8 +8,8 @@
 
 DWORD WINAPI Thing(LPVOID);
 
-bool HDReflections, ImproveReflectionLOD, ForceEnableMirror;
-static int ResolutionX, ResolutionY;
+bool HDReflections, ForceEnableMirror;
+static int ResolutionX, ResolutionY, ImproveReflectionLOD;
 DWORD GameState;
 HWND windowHandle;
 
@@ -61,14 +61,18 @@ void Init()
 
 	}
 
-	if (ImproveReflectionLOD)
+	if (ImproveReflectionLOD >= 1)
 	{
-		// Road Reflection LOD
+		// Road Reflection (Vehicle) LOD
 		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave, true);
 		// Vehicle Reflection LOD
 		injector::WriteMemory<uint32_t>(0x408FEC, 0x00000000, true);
-		// RVM LOD
+		// RVM Reflection LOD
 		injector::WriteMemory<uint32_t>(0x408F94, 0x00000000, true);
+
+		if (ImproveReflectionLOD >= 2)
+		// Road Reflection LOD
+		injector::WriteMemory<uint8_t>(0x445F74, 0xEB, true);
 	}
 
 	if (ForceEnableMirror)
