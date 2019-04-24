@@ -13,15 +13,27 @@ static int ResolutionX, ResolutionY, ImproveReflectionLOD;
 DWORD GameState;
 HWND windowHandle;
 
-DWORD ImproveReflectionLODCodeCaveExit = 0x570FF2;
+DWORD ImproveReflectionLODCodeCave1Exit = 0x570FF2;
+DWORD ImproveReflectionLODCodeCave2Exit = 0x570906;
 
 
-void __declspec(naked) ImproveReflectionLODCodeCave()
+void __declspec(naked) ImproveReflectionLODCodeCave1()
 {
 	__asm {
 		mov ecx, 0x0 // Road Reflection (Vehicle) LOD setting
 		mov edx, 0x0 // Road Reflection (Vehicle) LOD setting
-		jmp ImproveReflectionLODCodeCaveExit
+		jmp ImproveReflectionLODCodeCave1Exit
+	}
+}
+
+void __declspec(naked) ImproveReflectionLODCodeCave2()
+{
+	__asm {
+		mov eax, 0x0 // FE Road Reflection (Vehicle) LOD setting
+		mov edx, 0x0 // FE Road Reflection (Vehicle) LOD setting
+		cmp eax, edx
+		mov ecx, 0x0 // FE Road Reflection (Wheels) LOD setting
+		jmp ImproveReflectionLODCodeCave2Exit
 	}
 }
 
@@ -64,7 +76,8 @@ void Init()
 	if (ImproveReflectionLOD >= 1)
 	{
 		// Road Reflection (Vehicle) LOD
-		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave, true);
+		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave1, true);
+		injector::MakeJMP(0x5708F0, ImproveReflectionLODCodeCave2, true);
 		// Vehicle Reflection LOD
 		injector::WriteMemory<uint32_t>(0x408FEC, 0x00000000, true);
 		// RVM Reflection LOD
