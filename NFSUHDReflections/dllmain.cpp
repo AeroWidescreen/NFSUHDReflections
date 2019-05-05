@@ -8,32 +8,70 @@
 
 DWORD WINAPI Thing(LPVOID);
 
-bool HDReflections, ForceEnableMirror;
+bool HDReflections, ForceEnableMirror, RestoreSkybox;
 static int ResolutionX, ResolutionY, ImproveReflectionLOD;
 DWORD GameState;
 HWND windowHandle;
 
-DWORD ImproveReflectionLODCodeCave1Exit = 0x570FF2;
-DWORD ImproveReflectionLODCodeCave2Exit = 0x570906;
+DWORD VehicleLODCodeCaveExit = 0x570FF2;
+DWORD FEVehicleLODCodeCaveExit = 0x570906;
+DWORD RestoreSkyboxCodeCaveExit = 0x409789;
+DWORD sub_571870 = 0x571870;
+DWORD sub_40ED50 = 0x40ED50;
+DWORD RoadReflectionLODCodeCaveExit = 0x445FEB;
 
 
-void __declspec(naked) ImproveReflectionLODCodeCave1()
+void __declspec(naked) VehicleLODCodeCave()
 {
 	__asm {
 		mov ecx, 0x0 // Road Reflection (Vehicle) LOD setting
 		mov edx, 0x0 // Road Reflection (Vehicle) LOD setting
-		jmp ImproveReflectionLODCodeCave1Exit
+		jmp VehicleLODCodeCaveExit
 	}
 }
 
-void __declspec(naked) ImproveReflectionLODCodeCave2()
+void __declspec(naked) FEVehicleLODCodeCave()
 {
 	__asm {
 		mov eax, 0x0 // FE Road Reflection (Vehicle) LOD setting
 		mov edx, 0x0 // FE Road Reflection (Vehicle) LOD setting
 		cmp eax, edx
 		mov ecx, 0x0 // FE Road Reflection (Wheels) LOD setting
-		jmp ImproveReflectionLODCodeCave2Exit
+		jmp FEVehicleLODCodeCaveExit
+	}
+}
+
+void __declspec(naked) RoadReflectionLODCodeCave()
+{
+	__asm {
+		mov dword ptr ds : [esp + 0x18], 0x04
+		mov edx, dword ptr ds : [esi + ecx * 0x04 + 0x24]
+		push edx
+		mov edx, dword ptr ds : [edx]
+		cmp dword ptr ds : [edx + 0x0C], 0x43535254 // Excludes drain walls
+		je RoadReflectionLODCodeCave2
+		cmp dword ptr ds : [edx + 0x0C], 0x535F5658 // Excludes truck
+		je RoadReflectionLODCodeCave2
+		pop edx
+		mov dword ptr ds : [esp + 0x14], edx
+		mov dword ptr ds : [esp + 0x18], ecx
+		mov edi, dword ptr ds : [ebp + 0x08]
+		jmp RoadReflectionLODCodeCaveExit
+
+	RoadReflectionLODCodeCave2:
+		pop edx
+		jmp RoadReflectionLODCodeCaveExit
+	}
+}
+
+void __declspec(naked) RestoreSkyboxCodeCave()
+{
+	__asm {
+		mov ecx, 0x740580
+		call sub_571870 // Skybox function call
+		call sub_40ED50
+		push 0x740580
+		jmp RestoreSkyboxCodeCaveExit
 	}
 }
 
@@ -48,8 +86,9 @@ void Init()
 
 	// General
 	HDReflections = iniReader.ReadInteger("GENERAL", "HDReflections", 1);
-	ImproveReflectionLOD = iniReader.ReadInteger("GENERAL", "ImproveReflectionLOD", 1);
+	ImproveReflectionLOD = iniReader.ReadInteger("GENERAL", "ImproveReflectionLOD", 2);
 	ForceEnableMirror = iniReader.ReadInteger("GENERAL", "ForceEnableMirror", 1);
+	RestoreSkybox = iniReader.ReadInteger("GENERAL", "RestoreSkybox", 1);
 
 	
 	if (HDReflections)
@@ -76,8 +115,8 @@ void Init()
 	if (ImproveReflectionLOD >= 1)
 	{
 		// Road Reflection (Vehicle) LOD
-		injector::MakeJMP(0x570FEA, ImproveReflectionLODCodeCave1, true);
-		injector::MakeJMP(0x5708F0, ImproveReflectionLODCodeCave2, true);
+		injector::MakeJMP(0x570FEA, VehicleLODCodeCave, true);
+		injector::MakeJMP(0x5708F0, FEVehicleLODCodeCave, true);
 		// Vehicle Reflection LOD
 		injector::WriteMemory<uint32_t>(0x408FEC, 0x00000000, true);
 		// RVM Reflection LOD
@@ -85,7 +124,7 @@ void Init()
 
 		if (ImproveReflectionLOD >= 2)
 		// Road Reflection LOD
-		injector::WriteMemory<uint8_t>(0x445F74, 0xEB, true);
+		injector::MakeJMP(0x445F89, RoadReflectionLODCodeCave, true);
 	}
 
 	if (ForceEnableMirror)
@@ -94,6 +133,14 @@ void Init()
 		injector::MakeNOP(0x4C1F43, 2, true); 
 		// Enables mirror option for all camera views
 		injector::MakeNOP(0x40843F, 2, true);
+	}
+
+	if (RestoreSkybox)
+	{
+		// Restores skybox for RVM
+		injector::MakeJMP(0x409784, RestoreSkyboxCodeCave, true);
+		// Extends render distance so skybox is visible
+		injector::WriteMemory<uint32_t>(0x6B6CC0, 0x461C4000, true);
 	}
 }
 	
