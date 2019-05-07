@@ -24,6 +24,7 @@ DWORD RestoreVehicleSkyboxCodeCaveECX = 0x00000000;
 DWORD RestoreRoadSkyboxCodeCaveExit = 0x4095EF;
 DWORD RestoreRoadSkyboxCodeCaveECX = 0x00000000;
 DWORD ExtendVehicleRenderDistanceCodeCaveExit = 0x40B2F4;
+DWORD AnimatedMirrorMaskFixCodeCaveExit = 0x40EC95;
 
 
 void __declspec(naked) VehicleLODCodeCave()
@@ -54,18 +55,18 @@ void __declspec(naked) RoadReflectionLODCodeCave()
 		push edx
 		mov edx, dword ptr ds : [edx]
 		cmp dword ptr ds : [edx + 0x0C], 0x43535254 // Excludes drain walls
-		je RoadReflectionLODCodeCave2
+		je RoadReflectionLODCodeCavePart2
 		cmp dword ptr ds : [edx + 0x0C], 0x535F5658 // Excludes truck
-		je RoadReflectionLODCodeCave2
+		je RoadReflectionLODCodeCavePart2
 		cmp dword ptr ds : [edx + 0x08], 0x536222EF // Excludes bridge
-		je RoadReflectionLODCodeCave2
+		je RoadReflectionLODCodeCavePart2
 		pop edx
 		mov dword ptr ds : [esp + 0x14], edx
 		mov dword ptr ds : [esp + 0x18], ecx
 		mov edi, dword ptr ds : [ebp + 0x08]
 		jmp RoadReflectionLODCodeCaveExit
 
-	RoadReflectionLODCodeCave2:
+	RoadReflectionLODCodeCavePart2:
 		pop edx
 		jmp RoadReflectionLODCodeCaveExit
 	}
@@ -119,6 +120,22 @@ void __declspec(naked) ExtendVehicleRenderDistanceCodeCave()
 	}
 }
 
+void __declspec(naked) AnimatedMirrorMaskFixCodeCave()
+{
+	__asm {
+		cmp dword ptr ds : [esi + 0x16], 0x5F4C4C41 // "TRN_WATERFALL_A"
+		jne AnimatedMirrorMaskFixCodeCavePart2
+		cmp byte ptr ds : [esi + 0x54], 0x01 // Checks if the address has the correct value
+		jne AnimatedMirrorMaskFixCodeCavePart2
+		mov byte ptr ds : [esi + 0x54], 0x00 // Disables mirror mask animation
+
+	AnimatedMirrorMaskFixCodeCavePart2:
+		push ecx
+		movsx eax, byte ptr ds : [esi + 0x52]
+		jmp AnimatedMirrorMaskFixCodeCaveExit
+	}
+}
+
 void Init()
 {
 	// Read values from .ini
@@ -161,6 +178,8 @@ void Init()
 
 	if (ImproveReflectionLOD >= 1)
 	{
+		// Fixes moving RVM mask
+		injector::MakeJMP(0x40EC90, AnimatedMirrorMaskFixCodeCave, true);
 		// Road Reflection (Vehicle) LOD
 		injector::MakeJMP(0x570FEA, VehicleLODCodeCave, true);
 		injector::MakeJMP(0x5708F0, FEVehicleLODCodeCave, true);
