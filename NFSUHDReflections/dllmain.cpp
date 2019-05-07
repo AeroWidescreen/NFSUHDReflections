@@ -123,7 +123,11 @@ void __declspec(naked) ExtendVehicleRenderDistanceCodeCave()
 void __declspec(naked) AnimatedMirrorMaskFixCodeCave()
 {
 	__asm {
-		cmp dword ptr ds : [esi + 0x16], 0x5F4C4C41 // "TRN_WATERFALL_A"
+		cmp dword ptr ds : [esi + 0x0C], 0x5F4E5254 // "TRN_"
+		jne AnimatedMirrorMaskFixCodeCavePart2
+		cmp dword ptr ds : [esi + 0x10], 0x45544157 // "WATE"
+		jne AnimatedMirrorMaskFixCodeCavePart2
+		cmp dword ptr ds : [esi + 0x14], 0x4C414652 // "RFAL"
 		jne AnimatedMirrorMaskFixCodeCavePart2
 		cmp byte ptr ds : [esi + 0x54], 0x01 // Checks if the address has the correct value
 		jne AnimatedMirrorMaskFixCodeCavePart2
