@@ -8,8 +8,8 @@
 
 DWORD WINAPI Thing(LPVOID);
 
-bool HDReflections, ForceEnableMirror, RestoreMirrorSkybox, RestoreVehicleSkybox, RestoreRoadSkybox, RemoveRoadReflection;
-static int ResolutionX, ResolutionY, ImproveReflectionLOD;
+bool HDReflections, ForceEnableMirror, DisableRoadReflection;
+static int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
 DWORD GameState;
 HWND windowHandle;
 
@@ -153,10 +153,8 @@ void Init()
 	HDReflections = iniReader.ReadInteger("GENERAL", "HDReflections", 1);
 	ImproveReflectionLOD = iniReader.ReadInteger("GENERAL", "ImproveReflectionLOD", 2);
 	ForceEnableMirror = iniReader.ReadInteger("GENERAL", "ForceEnableMirror", 1);
-	RestoreMirrorSkybox = iniReader.ReadInteger("GENERAL", "RestoreMirrorSkybox", 1);
-	RestoreVehicleSkybox = iniReader.ReadInteger("GENERAL", "RestoreVehicleSkybox", 1);
-	RestoreRoadSkybox = iniReader.ReadInteger("GENERAL", "RestoreRoadSkybox", 1);
-	RemoveRoadReflection = iniReader.ReadInteger("GENERAL", "RemoveRoadReflection", 1);
+	RestoreSkybox = iniReader.ReadInteger("GENERAL", "RestoreSkybox", 1);
+	DisableRoadReflection = iniReader.ReadInteger("GENERAL", "DisableRoadReflection", 1);
 
 	
 	if (HDReflections)
@@ -205,33 +203,23 @@ void Init()
 		injector::MakeNOP(0x40843F, 2, true);
 	}
 
-	if (RestoreMirrorSkybox)
+	if (RestoreSkybox)
 	{
 		// Restores skybox for RVM
 		injector::MakeJMP(0x409784, RestoreMirrorSkyboxCodeCave, true);
-		// Extends render distance so skybox is visible
+		// Extends RVM distance so skybox is visible
 		injector::WriteMemory<uint32_t>(0x6B6CC0, 0x461C4000, true);
-	}
-
-	if (RestoreVehicleSkybox)
-	{
 		// Restores skybox for vehicle reflection
 		injector::MakeJMP(0x40970D, RestoreVehicleSkyboxCodeCave, true);
-		// Extends render distance so skybox is visible
+		// Extends vehicle reflection render distance so skybox is visible
 		injector::MakeJMP(0x40B2EC, ExtendVehicleRenderDistanceCodeCave, true);
-		// Enables skybox
-		injector::MakeNOP(0x57187B, 2, true);
-	}
-
-	if (RestoreRoadSkybox)
-	{
 		// Restores skybox for road reflection
 		injector::MakeJMP(0x4095EA, RestoreRoadSkyboxCodeCave, true);
 		// Enables skybox
 		injector::MakeNOP(0x57187B, 2, true);
 	}
 
-	if (RemoveRoadReflection)
+	if (DisableRoadReflection)
 	{
 		// Disables road reflection that appears in vehicle and mirror
 		injector::MakeNOP(0x40C95D, 2, true);
