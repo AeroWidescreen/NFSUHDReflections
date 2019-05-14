@@ -6,8 +6,8 @@
 - HDReflections : Reflection resolution will be increased based on the values set.  
 - ImproveReflectionLOD : Increases the level of detail used in reflections.  
 - ForceEnableMirror : Rearview mirror will be visible for all camera views. Toggle in options menu.
-- RestoreSkybox = 1 // Adds the skybox to reflections.
-- DisableRoadReflection = 1 // Prevents the road reflection from appearing in other reflections.  
+- RestoreSkybox : Adds the skybox to reflections.
+- DisableRoadReflection : Prevents the road reflection from appearing in other reflections.  
 
 ## Credits
 [Aero_](https://github.com/AeroWidescreen) : Creator of NFSU HD Reflections.  
