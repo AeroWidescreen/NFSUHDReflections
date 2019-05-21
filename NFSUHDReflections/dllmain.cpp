@@ -10,6 +10,7 @@ DWORD WINAPI Thing(LPVOID);
 
 bool HDReflections, ForceEnableMirror, DisableRoadReflection;
 static int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
+static float RoadScale, VehicleScale, MirrorScale;
 DWORD GameState;
 HWND windowHandle;
 
@@ -148,6 +149,9 @@ void Init()
 	// Resolution
 	ResolutionX = iniReader.ReadInteger("RESOLUTION", "ResolutionX", 1920);
 	ResolutionY = iniReader.ReadInteger("RESOLUTION", "ResolutionY", 1080);
+	RoadScale = iniReader.ReadFloat("RESOLUTION", "RoadScale", 1.0);
+	VehicleScale = iniReader.ReadFloat("RESOLUTION", "VehicleScale", 1.0);
+	MirrorScale = iniReader.ReadFloat("RESOLUTION", "MirrorScale", 1.0);
 
 	// General
 	HDReflections = iniReader.ReadInteger("GENERAL", "HDReflections", 1);
@@ -160,22 +164,21 @@ void Init()
 	if (HDReflections)
 	{
 		// Road Reflection X
-		injector::WriteMemory<uint32_t>(0x40A8BB, ResolutionX, true);
-		injector::WriteMemory<uint32_t>(0x40A8F1, ResolutionX, true);
-		injector::WriteMemory<uint32_t>(0x40854C, ResolutionX, true);
-		injector::WriteMemory<uint32_t>(0x40AACA, ResolutionX, true);
+		injector::WriteMemory<uint32_t>(0x40A8BB, ResolutionX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8F1, ResolutionX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40854C, ResolutionX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40AACA, ResolutionX * RoadScale, true);
 		// Road Reflection Y
-		injector::WriteMemory<uint32_t>(0x40A8B6, ResolutionY, true);
-		injector::WriteMemory<uint32_t>(0x40A8EC, ResolutionY, true);
-		injector::WriteMemory<uint32_t>(0x408553, ResolutionY, true);
-		injector::WriteMemory<uint32_t>(0x40AAD1, ResolutionY, true);
+		injector::WriteMemory<uint32_t>(0x40A8B6, ResolutionY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8EC, ResolutionY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x408553, ResolutionY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40AAD1, ResolutionY * RoadScale, true);
 		// Vehicle Reflection
-		injector::WriteMemory<uint32_t>(0x702A84, ResolutionY, true);
+		injector::WriteMemory<uint32_t>(0x702A84, ResolutionY * VehicleScale, true);
 		// RVM Reflection
 		// Aspect ratio without RVM_MASK is 3:1
-		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionY, true);
-		injector::WriteMemory<uint32_t>(0x702AA0, ResolutionY / 3, true);
-
+		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionY * MirrorScale, true);
+		injector::WriteMemory<uint32_t>(0x702AA0, (ResolutionY / 3) * MirrorScale, true);
 	}
 
 	if (ImproveReflectionLOD >= 1)
