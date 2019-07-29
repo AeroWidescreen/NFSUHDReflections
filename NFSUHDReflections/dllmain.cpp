@@ -8,6 +8,7 @@
 
 bool HDReflections, ForceEnableMirror, DisableRoadReflection;
 static int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
+int ResX, ResY;
 static float RoadScale, VehicleScale, MirrorScale;
 
 DWORD VehicleLODCodeCaveExit = 0x570FF2;
@@ -143,8 +144,8 @@ void Init()
 	CIniReader iniReader("NFSUHDReflections.ini");
 
 	// Resolution
-	ResolutionX = iniReader.ReadInteger("RESOLUTION", "ResolutionX", 1920);
-	ResolutionY = iniReader.ReadInteger("RESOLUTION", "ResolutionY", 1080);
+	ResX = iniReader.ReadInteger("RESOLUTION", "ResolutionX", 0);
+	ResY = iniReader.ReadInteger("RESOLUTION", "ResolutionY", 0);
 	RoadScale = iniReader.ReadFloat("RESOLUTION", "RoadScale", 1.0);
 	VehicleScale = iniReader.ReadFloat("RESOLUTION", "VehicleScale", 1.0);
 	MirrorScale = iniReader.ReadFloat("RESOLUTION", "MirrorScale", 1.0);
@@ -156,25 +157,30 @@ void Init()
 	RestoreSkybox = iniReader.ReadInteger("GENERAL", "RestoreSkybox", 1);
 	DisableRoadReflection = iniReader.ReadInteger("GENERAL", "DisableRoadReflection", 1);
 
-	
+	if (ResX <= 0 || ResY <= 0)
+	{
+		ResX = ::GetSystemMetrics(SM_CXSCREEN);
+		ResY = ::GetSystemMetrics(SM_CYSCREEN);
+	}
+
 	if (HDReflections)
 	{
 		// Road Reflection X
-		injector::WriteMemory<uint32_t>(0x40A8BB, ResolutionX * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x40A8F1, ResolutionX * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x40854C, ResolutionX * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x40AACA, ResolutionX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8BB, ResX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8F1, ResX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40854C, ResX * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40AACA, ResX * RoadScale, true);
 		// Road Reflection Y
-		injector::WriteMemory<uint32_t>(0x40A8B6, ResolutionY * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x40A8EC, ResolutionY * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x408553, ResolutionY * RoadScale, true);
-		injector::WriteMemory<uint32_t>(0x40AAD1, ResolutionY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8B6, ResY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40A8EC, ResY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x408553, ResY * RoadScale, true);
+		injector::WriteMemory<uint32_t>(0x40AAD1, ResY * RoadScale, true);
 		// Vehicle Reflection
-		injector::WriteMemory<uint32_t>(0x702A84, ResolutionY * VehicleScale, true);
+		injector::WriteMemory<uint32_t>(0x702A84, ResY * VehicleScale, true);
 		// RVM Reflection
 		// Aspect ratio without RVM_MASK is 3:1
-		injector::WriteMemory<uint32_t>(0x702A9C, ResolutionY * MirrorScale, true);
-		injector::WriteMemory<uint32_t>(0x702AA0, (ResolutionY / 3) * MirrorScale, true);
+		injector::WriteMemory<uint32_t>(0x702A9C, ResY * MirrorScale, true);
+		injector::WriteMemory<uint32_t>(0x702AA0, (ResY / 3) * MirrorScale, true);
 	}
 
 	if (ImproveReflectionLOD >= 1)
