@@ -6,13 +6,9 @@
 #include "..\includes\IniReader.h"
 #include <d3d9.h>
 
-DWORD WINAPI Thing(LPVOID);
-
 bool HDReflections, ForceEnableMirror, DisableRoadReflection;
 static int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
 static float RoadScale, VehicleScale, MirrorScale;
-DWORD GameState;
-HWND windowHandle;
 
 DWORD VehicleLODCodeCaveExit = 0x570FF2;
 DWORD FEVehicleLODCodeCaveExit = 0x570906;
@@ -21,9 +17,9 @@ DWORD sub_571870 = 0x571870;
 DWORD sub_40ED50 = 0x40ED50;
 DWORD RoadReflectionLODCodeCaveExit = 0x445FEB;
 DWORD RestoreVehicleSkyboxCodeCaveExit = 0x409714;
-DWORD RestoreVehicleSkyboxCodeCaveECX = 0x00000000;
+DWORD RestoreVehicleSkyboxCodeCaveECX;
 DWORD RestoreRoadSkyboxCodeCaveExit = 0x4095EF;
-DWORD RestoreRoadSkyboxCodeCaveECX = 0x00000000;
+DWORD RestoreRoadSkyboxCodeCaveECX;
 DWORD ExtendVehicleRenderDistanceCodeCaveExit = 0x40B2F4;
 DWORD AnimatedMirrorMaskFixCodeCaveExit = 0x40EC95;
 
