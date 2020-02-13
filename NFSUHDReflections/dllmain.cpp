@@ -7,9 +7,9 @@
 #include <d3d9.h>
 
 bool HDReflections, ForceEnableMirror, DisableRoadReflection;
-static int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
+int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
 int ResX, ResY;
-static float RoadScale, VehicleScale, MirrorScale;
+float RoadScale, VehicleScale, MirrorScale;
 
 DWORD VehicleLODCodeCaveExit = 0x570FF2;
 DWORD FEVehicleLODCodeCaveExit = 0x570906;
@@ -23,6 +23,10 @@ DWORD RestoreRoadSkyboxCodeCaveExit = 0x4095EF;
 DWORD RestoreRoadSkyboxCodeCaveECX;
 DWORD ExtendVehicleRenderDistanceCodeCaveExit = 0x40B2F4;
 DWORD AnimatedMirrorMaskFixCodeCaveExit = 0x40EC95;
+DWORD ForceEnableMirrorCodeCave1Exit = 0x4C1F49;
+DWORD ForceEnableMirrorCodeCave1DriftModeJump = 0x4C1FA6;
+DWORD ForceEnableMirrorCodeCave2Exit = 0x408446;
+DWORD ForceEnableMirrorCodeCave2DriftModeJump = 0x4084B1;
 
 
 void __declspec(naked) VehicleLODCodeCave()
@@ -67,6 +71,35 @@ void __declspec(naked) RoadReflectionLODCodeCave()
 	RoadReflectionLODCodeCavePart2:
 		pop edx
 		jmp RoadReflectionLODCodeCaveExit
+	}
+}
+
+void __declspec(naked) ForceEnableMirrorCodeCave1()
+{
+	__asm {
+		cmp dword ptr ds : [0x78A345] , 0x01
+		je ForceEnableMirrorCodeCave1DriftMode
+		cmp byte ptr ds : [eax + 0x24] , bl
+		push 0x01
+		push 0x03
+		jmp ForceEnableMirrorCodeCave1Exit
+
+		ForceEnableMirrorCodeCave1DriftMode :
+		jmp ForceEnableMirrorCodeCave1DriftModeJump
+
+	}
+}
+
+void __declspec(naked) ForceEnableMirrorCodeCave2()
+{
+	__asm {
+		cmp dword ptr ds : [0x78A345] , 0x01
+		je ForceEnableMirrorCodeCave2DriftMode
+		mov eax, dword ptr ds : [0x740504]
+		jmp ForceEnableMirrorCodeCave2Exit
+
+		ForceEnableMirrorCodeCave2DriftMode :
+		jmp ForceEnableMirrorCodeCave2DriftModeJump
 	}
 }
 
@@ -203,9 +236,9 @@ void Init()
 	if (ForceEnableMirror)
 	{
 		// Enables mirror for all camera views
-		injector::MakeNOP(0x4C1F43, 2, true); 
+		injector::MakeJMP(0x4C1F43, ForceEnableMirrorCodeCave1, true);
 		// Enables mirror option for all camera views
-		injector::MakeNOP(0x40843F, 2, true);
+		injector::MakeJMP(0x40843F, ForceEnableMirrorCodeCave2, true);
 	}
 
 	if (RestoreSkybox)
