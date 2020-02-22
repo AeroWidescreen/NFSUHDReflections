@@ -6,10 +6,11 @@
 #include "..\includes\IniReader.h"
 #include <d3d9.h>
 
-bool HDReflections, ForceEnableMirror, DisableRoadReflection;
+bool HDReflections, RealFrontEndReflections, ForceEnableMirror, DisableRoadReflection, ExtendTunnelDistance;
 int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
 int ResX, ResY;
 float RoadScale, VehicleScale, MirrorScale;
+int TunnelDistance = 24;
 
 DWORD VehicleLODCodeCaveExit = 0x570FF2;
 DWORD FEVehicleLODCodeCaveExit = 0x570906;
@@ -93,7 +94,9 @@ void __declspec(naked) ForceEnableMirrorCodeCave1()
 void __declspec(naked) ForceEnableMirrorCodeCave2()
 {
 	__asm {
-		cmp dword ptr ds : [0x78A345] , 0x01
+		mov eax, dword ptr ds : [0x536610] // 0078A344 (0078A334 = EU)
+		add eax, 0x01
+		cmp byte ptr ds : [eax], 0x01
 		je ForceEnableMirrorCodeCave2DriftMode
 		mov eax, dword ptr ds : [0x740504]
 		jmp ForceEnableMirrorCodeCave2Exit
@@ -106,10 +109,11 @@ void __declspec(naked) ForceEnableMirrorCodeCave2()
 void __declspec(naked) RestoreMirrorSkyboxCodeCave()
 {
 	__asm {
-		mov ecx, 0x740580
+		mov ecx, dword ptr ds : [0x4097F4] // 00740580 (00750570 = EU)
 		call sub_571870 // Skybox function call
 		call sub_40ED50
-		push 0x740580
+		mov ecx, dword ptr ds : [0x4097F4] // 00740580 (00750570 = EU)
+		push ecx
 		jmp RestoreMirrorSkyboxCodeCaveExit
 	}
 }
@@ -118,7 +122,7 @@ void __declspec(naked) RestoreVehicleSkyboxCodeCave()
 {
 	__asm {
 		mov dword ptr ds : [RestoreVehicleSkyboxCodeCaveECX], ecx
-		mov ecx, 0x740820
+		mov ecx, ebx // 00740820 (00740810 = EU)
 		call sub_571870
 		call sub_40ED50
 		mov ecx, dword ptr ds : [RestoreVehicleSkyboxCodeCaveECX]
@@ -133,11 +137,12 @@ void __declspec(naked) RestoreRoadSkyboxCodeCave()
 {
 	__asm {
 		mov dword ptr ds : [RestoreRoadSkyboxCodeCaveECX], ecx
-		mov ecx, 0x7405E0
+		mov ecx, dword ptr ds : [0x409658] // 007405D0 (007505E0 = EU)
 		call sub_571870
 		call sub_40ED50
+		mov ecx, dword ptr ds : [0x409658] // 007405D0 (007505E0 = EU)
+		push ecx
 		mov ecx, dword ptr ds : [RestoreRoadSkyboxCodeCaveECX]
-		push 0x7405E0
 		jmp RestoreRoadSkyboxCodeCaveExit
 	}
 }
@@ -145,7 +150,12 @@ void __declspec(naked) RestoreRoadSkyboxCodeCave()
 void __declspec(naked) ExtendVehicleRenderDistanceCodeCave()
 {
 	__asm {
+		mov ecx, dword ptr ds : [0x44976C]
+		cmp dword ptr ds : [ecx], 0x03
+		je ExtendVehicleRenderDistanceCodeCaveFrontEnd
 		mov esi, 0x461C4000
+
+	ExtendVehicleRenderDistanceCodeCaveFrontEnd:
 		mov dword ptr ds : [eax + 0xC0], esi
 		jmp ExtendVehicleRenderDistanceCodeCaveExit
 	}
@@ -186,9 +196,13 @@ void Init()
 	// General
 	HDReflections = iniReader.ReadInteger("GENERAL", "HDReflections", 1);
 	ImproveReflectionLOD = iniReader.ReadInteger("GENERAL", "ImproveReflectionLOD", 2);
+	RealFrontEndReflections = iniReader.ReadInteger("GENERAL", "RealFrontEndReflections", 0);
 	ForceEnableMirror = iniReader.ReadInteger("GENERAL", "ForceEnableMirror", 1);
 	RestoreSkybox = iniReader.ReadInteger("GENERAL", "RestoreSkybox", 1);
 	DisableRoadReflection = iniReader.ReadInteger("GENERAL", "DisableRoadReflection", 1);
+
+	// Extra
+	ExtendTunnelDistance = iniReader.ReadInteger("EXTRA", "ExtendTunnelDistance", 1);
 
 	if (ResX <= 0 || ResY <= 0)
 	{
@@ -224,13 +238,18 @@ void Init()
 		injector::MakeJMP(0x570FEA, VehicleLODCodeCave, true);
 		injector::MakeJMP(0x5708F0, FEVehicleLODCodeCave, true);
 		// Vehicle Reflection LOD
-		injector::WriteMemory<uint32_t>(0x408FEC, 0x00000000, true);
+		injector::WriteMemory<uint32_t>(0x408FEC, 0x00006002, true);
 		// RVM Reflection LOD
-		injector::WriteMemory<uint32_t>(0x408F94, 0x00000000, true);
+		injector::WriteMemory<uint32_t>(0x408F94, 0x00006002, true);
 
 		if (ImproveReflectionLOD >= 2)
 		// Road Reflection LOD
 		injector::MakeJMP(0x445F89, RoadReflectionLODCodeCave, true);
+	}
+
+	if (RealFrontEndReflections)
+	{
+		injector::WriteMemory<uint32_t>(0x4AE59F, 0x00000000, true);
 	}
 
 	if (ForceEnableMirror)
@@ -261,6 +280,16 @@ void Init()
 	{
 		// Disables road reflection that appears in vehicle and mirror
 		injector::MakeNOP(0x40C95D, 2, true);
+	}
+
+	if (ExtendTunnelDistance)
+	{
+		// Main
+		injector::WriteMemory(0x4AE5BE, &TunnelDistance, true);
+		// Road Reflection
+		injector::WriteMemory(0x4AE57E, &TunnelDistance, true);
+		// Vehicle Reflection
+		injector::WriteMemory(0x4AE59A, &TunnelDistance, true);
 	}
 }
 	
