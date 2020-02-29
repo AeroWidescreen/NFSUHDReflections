@@ -8,9 +8,13 @@
 - MirrorScale : Scales the resolution of the rearview mirror.  
 - HDReflections : Reflection resolution will be increased based on the values set.  
 - ImproveReflectionLOD : Increases the level of detail used in reflections.  
+- RealFrontEndReflections : Enables real vehicle reflections in the front end.  
 - ForceEnableMirror : Rearview mirror will be visible for all camera views. Toggle in options menu.
 - RestoreSkybox : Adds the skybox to reflections.
 - DisableRoadReflection : Prevents the road reflection from appearing in other reflections.  
+
+## Extra Features  
+- ExtendTunnelDistance : Allows the tunnel to render at a much farther distance.
 
 ## Credits
 [Aero_](https://github.com/AeroWidescreen) : Creator of NFSU HD Reflections.  
