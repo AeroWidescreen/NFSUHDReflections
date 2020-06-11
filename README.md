@@ -1,7 +1,7 @@
 # NFSU HD Reflections
 
 ## How To Use  
-1. Download and extract [NFSUHDReflections.zip](https://github.com/AeroWidescreen/NFSCHDFontSupport/releases).  
+1. Download and extract [NFSUHDReflections.zip](https://github.com/AeroWidescreen/NFSUHDReflections/releases).  
 2. Move the scripts folder to the game's install folder.  
 3. Download and extract [Ultimate-ASI-Loader.zip](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases).  
 4. Move dinput8.dll to the game's install folder.  
