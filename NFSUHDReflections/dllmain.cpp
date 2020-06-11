@@ -9,7 +9,7 @@
 bool HDReflections, RealFrontEndReflections, ForceEnableMirror, DisableRoadReflection, ExtendTunnelDistance;
 int ResolutionX, ResolutionY, ImproveReflectionLOD, RestoreSkybox;
 int ResX, ResY;
-float RoadScale, VehicleScale, MirrorScale;
+float RoadScale, VehicleScale, MirrorScale, VehicleReflectionBrightness;
 int TunnelDistance = 24;
 
 DWORD VehicleLODCodeCaveExit = 0x570FF2;
@@ -200,6 +200,7 @@ void Init()
 	ForceEnableMirror = iniReader.ReadInteger("GENERAL", "ForceEnableMirror", 1);
 	RestoreSkybox = iniReader.ReadInteger("GENERAL", "RestoreSkybox", 1);
 	DisableRoadReflection = iniReader.ReadInteger("GENERAL", "DisableRoadReflection", 1);
+	VehicleReflectionBrightness = iniReader.ReadFloat("GENERAL", "VehicleReflectionBrightness", 1.0);
 
 	// Extra
 	ExtendTunnelDistance = iniReader.ReadInteger("EXTRA", "ExtendTunnelDistance", 1);
@@ -290,6 +291,17 @@ void Init()
 		injector::WriteMemory(0x4AE57E, &TunnelDistance, true);
 		// Vehicle Reflection
 		injector::WriteMemory(0x4AE59A, &TunnelDistance, true);
+	}
+
+	if (VehicleReflectionBrightness)
+	{
+		static float VehicleReflectionIntensity = (0.5f * VehicleReflectionBrightness);
+		injector::WriteMemory(0x40FBB9, &VehicleReflectionIntensity, true);
+		injector::WriteMemory(0x40FBCF, &VehicleReflectionIntensity, true);
+		injector::WriteMemory(0x40FBE5, &VehicleReflectionIntensity, true);
+		injector::WriteMemory(0x40FBFB, &VehicleReflectionIntensity, true);
+		injector::WriteMemory(0x40FC20, &VehicleReflectionIntensity, true);
+		injector::WriteMemory(0x40FC3A, &VehicleReflectionIntensity, true);
 	}
 }
 	
